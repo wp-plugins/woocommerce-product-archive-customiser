@@ -2,10 +2,10 @@
 /*
 Plugin Name: WooCommerce Product Archive Customiser
 Plugin URI: http://jameskoster.co.uk/tag/product-archive-customiser/
-Version: 0.1.1
+Version: 0.2.0
 Description: Allows you to customise WooCommerce product archives. Change the number of product columns and the number of products displayed per page. Toggle the display of core elements and enable some that are not included in WooCommerce core such as stock levels and product categories.
 Author: jameskoster
-Tested up to: 3.6
+Tested up to: 3.8-b1
 Author URI: http://jameskoster.co.uk
 Text Domain: woocommerce-product-archive-customiser
 Domain Path: /languages/
@@ -68,6 +68,12 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 						'id' 		=> 'wc_pac_product_count',
 						'type' 		=> 'checkbox',
 						'default'	=> 'yes'
+					),
+					array(
+						'desc' 		=> __( 'Per Page Dropdown', 'woocommerce-product-archive-customiser' ),
+						'id' 		=> 'wc_pac_product_perpage',
+						'type' 		=> 'checkbox',
+						'default'	=> 'no'
 					),
 					array(
 						'desc' 		=> __( 'Product Sorting', 'woocommerce-product-archive-customiser' ),
@@ -136,6 +142,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 				// Default options
 				add_option( 'wc_pac_columns', '4' );
 				add_option( 'wc_pac_products_per_page', '10' );
+				add_option( 'wc_pac_product_perpage', 'no' );
 				add_option( 'wc_pac_product_count', 'yes' );
 				add_option( 'wc_pac_product_sorting', 'yes' );
 				add_option( 'wc_pac_sale_flash', 'yes' );
@@ -198,6 +205,11 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
 				// Products per page
 				add_filter( 'loop_shop_per_page', array( $this, 'woocommerce_pac_products_per_page' ), 20 );
+
+				// Per Page Dropdown
+				if ( get_option( 'wc_pac_product_perpage' ) == 'yes' ) {
+					add_action( 'woocommerce_before_shop_loop', array( $this, 'woocommerce_pac_show_product_perpage' ), 30 );
+				}
 
 				// Sale flash
 				if ( get_option( 'wc_pac_sale_flash' ) == 'no' ) {
@@ -267,7 +279,36 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 			// Products per page
 			function woocommerce_pac_products_per_page() {
 				$per_page 	= get_option( 'wc_pac_products_per_page' );
+				if ( isset( $_COOKIE['per_page'] ) ) {
+					$per_page = $_COOKIE['per_page'];
+				}
+				if ( isset( $_POST['per_page'] ) ) {
+					setcookie( 'per_page', $_POST['per_page'], time()+1209600, '/' );
+					$per_page = $_POST['per_page'];
+				}
 				return $per_page;
+			}
+
+			// Per Page Dropdown
+			function woocommerce_pac_show_product_perpage() {
+				$per_page 		= get_option( 'wc_pac_products_per_page' );
+				$woo_per_page	= ( isset( $_REQUEST['per_page'] ) ) ? $_REQUEST['per_page'] : $_COOKIE['per_page'];
+				?>
+				<form class="woocommerce-ordering" method="post">
+					<select name="per_page" class="per_page" onchange="this.form.submit()">
+						<?php
+							$x = 1;
+							while ( $x <= 5 ) {
+								$value 		= $per_page * $x;
+								$selected 	= selected( $woo_per_page, $value, false );
+								$label 		= __( "{$value} per page", 'woocommerce-product-archive-customiser' );
+								echo "<option value='{$value}' {$selected}>{$label}</option>";
+								$x++;
+							}
+						?>
+					</select>
+				</form>
+				<?php
 			}
 
 			// Product columns
