@@ -2,10 +2,10 @@
 /*
 Plugin Name: WooCommerce Product Archive Customiser
 Plugin URI: http://jameskoster.co.uk/tag/product-archive-customiser/
-Version: 0.2.0
+Version: 0.3.0
 Description: Allows you to customise WooCommerce product archives. Change the number of product columns and the number of products displayed per page. Toggle the display of core elements and enable some that are not included in WooCommerce core such as stock levels and product categories.
 Author: jameskoster
-Tested up to: 3.8-b1
+Tested up to: 3.8.1
 Author URI: http://jameskoster.co.uk
 Text Domain: woocommerce-product-archive-customiser
 Domain Path: /languages/
@@ -157,8 +157,9 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
 
 				// Admin
-				add_action( 'woocommerce_settings_catalog_options_after', array( $this, 'admin_settings' ), 20);
-				add_action( 'woocommerce_update_options_catalog', array( $this, 'save_admin_settings' ) );
+				add_action( 'woocommerce_settings_catalog_options_after', array( $this, 'admin_settings' ), 20 );
+				add_action( 'woocommerce_update_options_catalog', array( $this, 'save_admin_settings' ) ); // < 2.1
+				add_action( 'woocommerce_update_options_products', array( $this, 'save_admin_settings' ) ); // 2.1 +
 				add_action( 'admin_enqueue_scripts', array( $this, 'wc_pac_admin_scripts' ) );
 				add_action( 'init', array( $this, 'wc_pac_fire_customisations' ) );
 				add_action( 'wp', array( $this, 'wc_pac_columns' ) ); // This doesn't work when hooked into init :(
@@ -197,7 +198,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 			// Setup styles
 			function wc_pac_styles() {
 				wp_enqueue_style( 'pac-styles', plugins_url( '/assets/css/pac.css', __FILE__ ) );
-				wp_enqueue_style( 'pac-layout-styles', plugins_url( '/assets/css/layout.css', __FILE__ ) );
+				wp_enqueue_style( 'pac-layout-styles', plugins_url( '/assets/css/layout.css', __FILE__ ), '', '', 'only screen and (min-width: ' . apply_filters( 'woocommerce_style_smallscreen_breakpoint', $breakpoint = '768px' ) . ')' );
 			}
 
 			// Fire customisations!
@@ -291,8 +292,16 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
 			// Per Page Dropdown
 			function woocommerce_pac_show_product_perpage() {
-				$per_page 		= get_option( 'wc_pac_products_per_page' );
-				$woo_per_page	= ( isset( $_REQUEST['per_page'] ) ) ? $_REQUEST['per_page'] : $_COOKIE['per_page'];
+				$per_page = get_option( 'wc_pac_products_per_page' );
+
+				if ( isset( $_REQUEST['per_page'] ) ) {
+					$woo_per_page = $_REQUEST['per_page'];
+				} elseif ( ! isset( $_REQUEST['per_page'] ) && isset( $_COOKIE['per_page'] ) ) {
+					$woo_per_page = $_COOKIE['per_page'];
+				} else {
+					$woo_per_page = $per_page;
+				}
+
 				?>
 				<form class="woocommerce-ordering" method="post">
 					<select name="per_page" class="per_page" onchange="this.form.submit()">

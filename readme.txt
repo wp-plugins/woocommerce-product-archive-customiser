@@ -2,8 +2,8 @@
 Contributors: jameskoster
 Tags: woocommerce, ecommerce, products
 Requires at least: 3.5
-Tested up to: 3.8-b1
-Stable tag: 0.2.0
+Tested up to: 3.8.1
+Stable tag: 0.3.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -19,7 +19,7 @@ Please feel free to contribute on <a href="https://github.com/jameskoster/woocom
 
 1. Upload `woocommerce-product-archive-customiser` to the `/wp-content/plugins/` directory
 2. Activate the plugin through the 'Plugins' menu in WordPress
-3. Configure the options on the Catalog tab of the WooCommerce settings screen.
+3. Configure the options on the Products tab of the WooCommerce settings screen.
 3. Done!
 
 == Frequently Asked Questions ==
@@ -48,6 +48,10 @@ function remove_pac_styles() {
 2. An example product archive with everything enabled.
 
 == Changelog ==
+
+= 0.3.0  - 04/02/2014 =
+* WooCommerce 2.1 compatibility.
+* Fixed a notice when using the products per page selector feature.
 
 = 0.2.0  - 28/11/2013 =
 * Added option for user to choose how many products to display per page. Kudos @spmlucas.
